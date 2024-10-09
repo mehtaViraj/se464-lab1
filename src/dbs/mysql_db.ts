@@ -81,11 +81,15 @@ export default class MySqlDB implements IDatabase {
   };
 
   insertOrder = async (order: Order) => {
-    await this.connection.query(`INERT INTO orders (${order.id}, ${order.userId}, ${order.totalAmount})`)
-    const promises = order.products.map(async (orderItem) => {
-      this.connection.query(`INSERT INTO order_items (orderId, productId, quantity) VALUES (${order.id}, ${orderItem.productId}, ${orderItem.quantity})`)
+    this.connection.query("BEGIN")
+
+    await this.connection.query(`INSERT INTO orders VALUES (${order.id}, "${order.userId}", ${order.totalAmount})`)
+    const promises = order.products.map(async (orderItem, i) => {
+      this.connection.query(`INSERT INTO order_items (id, orderId, productId, quantity) VALUES (UUID(), ${order.id}, "${orderItem.productId}", ${orderItem.quantity})`)
     })
     await Promise.all(promises)
+
+    this.connection.query("COMMIT")
 
     return
   };

@@ -16,7 +16,7 @@ export default class RestServer implements IServer {
   }
 
   start() {
-    const port = 9000;
+    const port = 3000;
     this.server.use(cors());
     this.server.use(morgan("tiny"));
     this.server.use(bodyParser.json());
