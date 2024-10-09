@@ -51,9 +51,10 @@ async function runTests() {
 
         // Test updating a user
         console.log("Testing updateUser...");
-        const userUpdate = { id: 'user1', name: 'Updated Name', email: 'updated@example.com' };
+        const userUpdate = { id: 'cd06ad9c-367c-41bd-8473-46a58b836e95', name: 'bob', email: 'bob@gmail.com' };
         await db.updateUser(userUpdate);
         console.log("User updated:", userUpdate);
+        console.log("User By ID after update:", await db.queryUserById(userUpdate.id));
 
     } catch (error) {
         console.error("Error running tests:", error);
