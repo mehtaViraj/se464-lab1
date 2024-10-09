@@ -78,11 +78,31 @@ export default class MySqlDB implements IDatabase {
   };
 
   insertOrder = async (order: Order) => {
-    ///TODO: Implement this
+    await this.connection.query(`INERT INTO orders (${order.id}, ${order.userId}, ${order.totalAmount})`)
+    const promises = order.products.map(async (orderItem) => {
+      this.connection.query(`INSERT INTO order_items (orderId, productId, quantity) VALUES (${order.id}, ${orderItem.productId}, ${orderItem.quantity})`)
+    })
+    await Promise.all(promises)
+
+    return
   };
 
   updateUser = async (patch: UserPatchRequest) => {
-    ///TODO: Implement this
+    const updates = []
+    if (patch.email) {
+      updates.push(`email = "${patch.email}"`)
+    }
+    if (patch.password) {
+      updates.push(`password = "${patch.password}"`)
+    }
+    
+    if (!patch.email && !patch.password) {
+      return
+    }
+
+    await this.connection.query(`UPDATE users SET ${updates.join(', ')} WHERE id = "${patch.id}"`)
+
+    return
   };
 
   // This is to delete the inserted order to avoid database data being contaminated also to make the data in database consistent with that in the json files so the comparison will return true.
