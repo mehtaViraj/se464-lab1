@@ -130,7 +130,7 @@ export default class DynamoDB implements IDatabase {
 
       await this.docClient.send(putCommand);
       // Optionally delete the order if needed immediately after insertion (as per your instructions).
-      await this.deleteOrder(order.id);
+      // await this.deleteOrder(order.id);
   };
 
   
