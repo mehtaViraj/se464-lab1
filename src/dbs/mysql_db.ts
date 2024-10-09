@@ -29,12 +29,18 @@ export default class MySqlDB implements IDatabase {
 
   async queryRandomProduct() {
     ///TODO: Implement this
-    return this.connection.query('') as unknown as Product;
+    const query: string = `SELECT * FROM products ORDER BY RAND() LIMIT 1;`;
+    return (await this.connection.query(query))[0][0] as Product;
+    // return this.connection.query('') as unknown as Product;
   };
 
   queryAllProducts = async (category?: string) => {
     ///TODO: Implement this
-    return this.connection.query('') as unknown as Product[];
+    if (!category) {
+      return (await this.connection.query("SELECT * FROM products;"))[0] as Product[];
+    }
+    const query: string = `SELECT * FROM products WHERE categoryId = "${category}";`;
+    return (await this.connection.query(query))[0] as Product[];
   };
 
   queryAllCategories = async () => {
@@ -43,13 +49,14 @@ export default class MySqlDB implements IDatabase {
 
   queryAllOrders = async () => {
     ///TODO: Implement this
-    return (await this.connection.query(""))[0] as Order[];
+    return (await this.connection.query("SELECT * FROM orders;"))[0] as Order[];
   };
 
   async queryOrdersByUser(id: string) {
     ///TODO: Implement this
+    const query: string = `SELECT * FROM orders WHERE userId = "${id}";`;
     return (
-      await this.connection.query('')
+      await this.connection.query(query)
     )[0] as Order[]; // Not a perfect analog for NoSQL, since SQL cannot return a list.
   };
 
@@ -74,11 +81,35 @@ export default class MySqlDB implements IDatabase {
   };
 
   insertOrder = async (order: Order) => {
-    ///TODO: Implement this
+    this.connection.query("BEGIN")
+
+    await this.connection.query(`INSERT INTO orders VALUES (${order.id}, "${order.userId}", ${order.totalAmount})`)
+    const promises = order.products.map(async (orderItem, i) => {
+      this.connection.query(`INSERT INTO order_items (id, orderId, productId, quantity) VALUES (UUID(), ${order.id}, "${orderItem.productId}", ${orderItem.quantity})`)
+    })
+    await Promise.all(promises)
+
+    this.connection.query("COMMIT")
+
+    return
   };
 
   updateUser = async (patch: UserPatchRequest) => {
-    ///TODO: Implement this
+    const updates = []
+    if (patch.email) {
+      updates.push(`email = "${patch.email}"`)
+    }
+    if (patch.password) {
+      updates.push(`password = "${patch.password}"`)
+    }
+    
+    if (!patch.email && !patch.password) {
+      return
+    }
+
+    await this.connection.query(`UPDATE users SET ${updates.join(', ')} WHERE id = "${patch.id}"`)
+
+    return
   };
 
   // This is to delete the inserted order to avoid database data being contaminated also to make the data in database consistent with that in the json files so the comparison will return true.
