@@ -36,8 +36,11 @@ export default class MySqlDB implements IDatabase {
 
   queryAllProducts = async (category?: string) => {
     ///TODO: Implement this
-    const query: string = `SELECT * FROM products p JOIN ON categories c ON p.categoryId = c.id WHERE c.name = "${category}";`;
-    return this.connection.query(query) as unknown as Product[];
+    if (!category) {
+      return (await this.connection.query("SELECT * FROM products;"))[0] as Product[];
+    }
+    const query: string = `SELECT * FROM products WHERE categoryId = "${category}";`;
+    return (await this.connection.query(query))[0] as Product[];
   };
 
   queryAllCategories = async () => {
