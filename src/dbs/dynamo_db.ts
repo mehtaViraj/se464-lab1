@@ -12,9 +12,19 @@ export default class DynamoDB implements IDatabase {
     console.log("DynamoDB connected!");
   };
 
-  async queryRandomProduct() {
-    ///TODO: Implement this--replace the line below
-    return new Promise<Product>(() => { });
+  
+  async queryRandomProduct(): Promise<Product> {
+      const command = new ScanCommand({
+          TableName: "Products",
+      });
+      const response = await this.docClient.send(command);
+
+      if (!response.Items || response.Items.length === 0) {
+          throw new Error("No products found");
+      }
+
+      const randomIndex = Math.floor(Math.random() * response.Items.length);
+      return response.Items[randomIndex] as Product;
   };
 
   async queryProductById(productId: string) {
@@ -29,9 +39,19 @@ export default class DynamoDB implements IDatabase {
     return response.Item as Product;
   };
 
-  async queryAllProducts(category?: string) {
-    ///TODO: Implement this--replace the line below
-    return new Promise<Product[]>(() => { });
+  async queryAllProducts(category?: string): Promise<Product[]> {
+      const command = new ScanCommand({
+          TableName: "Products",
+          ...(category && {
+              FilterExpression: "category = :category",
+              ExpressionAttributeValues: {
+                  ":category": category,
+              },
+          }),
+      });
+
+      const response = await this.docClient.send(command);
+      return response.Items as Product[];
   };
 
   async queryAllCategories() {
@@ -103,14 +123,47 @@ export default class DynamoDB implements IDatabase {
   };
 
   async insertOrder(order: Order): Promise<void> {
-    ///TODO: Implement this--replace the line below. Make sure the deleteOrder is called after insertOrder. You can use "await".
-    return new Promise<void>(() => { });
-  }
+      const putCommand = new PutCommand({
+          TableName: "Orders",
+          Item: order,
+      });
 
-  async updateUser(patch: UserPatchRequest): Promise<void> {
-    ///TODO: Implement this--replace the line below
-    return new Promise<void>(() => { });
+      await this.docClient.send(putCommand);
+      // Optionally delete the order if needed immediately after insertion (as per your instructions).
+      await this.deleteOrder(order.id);
   };
+
+  
+  
+  async updateUser(patch: UserPatchRequest): Promise<void> {
+      const { id, email, password } = patch;
+
+      const updateExpression = [];
+      const expressionAttributeValues: Record<string, any> = {};
+
+      if (email) {
+          updateExpression.push("email = :email");
+          expressionAttributeValues[":email"] = email;
+      }
+      if (password) {
+          updateExpression.push("password = :password");
+          expressionAttributeValues[":password"] = password;
+      }
+
+      if (updateExpression.length === 0) {
+          console.log("No fields to update.");
+          return;
+      }
+
+      const command = new UpdateCommand({
+          TableName: "Users",
+          Key: { id },
+          UpdateExpression: `SET ${updateExpression.join(", ")}`,
+          ExpressionAttributeValues: expressionAttributeValues
+      });
+
+      await this.docClient.send(command);
+  }
 
   // This is to delete the inserted order to avoid database data being contaminated also to make the data in database consistent with that in the json files so the comparison will return true.
   // Feel free to modify this based on your inserOrder implementation
