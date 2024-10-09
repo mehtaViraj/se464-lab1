@@ -15,7 +15,7 @@ async function runTests() {
 
         // Test querying a product by ID
         console.log("Testing queryProductById...");
-        const productId = '123'; // Replace with a valid product ID
+        const productId = '2ec90391-a901-4ece-92d6-8328e3546e24'; // Replace with a valid product ID
         const product = await db.queryProductById(productId);
         console.log("Product By ID:", product);
 
@@ -45,7 +45,7 @@ async function runTests() {
 
         // Test querying user by ID
         console.log("Testing queryUserById...");
-        const userId = 'user1'; // Replace with a valid user ID
+        const userId = '2ea2c512-9b3f-4c2f-ae7c-f179621cccbc'; // Replace with a valid user ID
         const user = await db.queryUserById(userId);
         console.log("User By ID:", user);
 
