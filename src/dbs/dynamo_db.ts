@@ -133,19 +133,28 @@ export default class DynamoDB implements IDatabase {
       await this.deleteOrder(order.id);
   };
 
+  
   async updateUser(patch: UserPatchRequest): Promise<void> {
-      const { id, name, email } = patch;
+      const { id, email } = patch;
 
+      // Construct the update expression dynamically based on available properties
       const updateExpression = [];
       const expressionAttributeValues: Record<string, any> = {};
 
-      if (name) {
+      // Only include the fields that exist in the patch object
+      if (patch['name']) {
           updateExpression.push("#n = :name");
-          expressionAttributeValues[":name"] = name;
+          expressionAttributeValues[":name"] = patch['name'];
       }
       if (email) {
           updateExpression.push("email = :email");
           expressionAttributeValues[":email"] = email;
+      }
+
+      // Skip the update if there's nothing to update
+      if (updateExpression.length === 0) {
+          console.log("No fields to update.");
+          return;
       }
 
       const command = new UpdateCommand({
@@ -157,7 +166,7 @@ export default class DynamoDB implements IDatabase {
       });
 
       await this.docClient.send(command);
-  };
+  }
   // This is to delete the inserted order to avoid database data being contaminated also to make the data in database consistent with that in the json files so the comparison will return true.
   // Feel free to modify this based on your inserOrder implementation
   async deleteOrder(id: string): Promise<void> {
