@@ -29,12 +29,15 @@ export default class MySqlDB implements IDatabase {
 
   async queryRandomProduct() {
     ///TODO: Implement this
-    return this.connection.query('') as unknown as Product;
+    const query: string = `SELECT * FROM products ORDER BY RAND() LIMIT 1;`;
+    return (await this.connection.query(query))[0][0] as Product;
+    // return this.connection.query('') as unknown as Product;
   };
 
   queryAllProducts = async (category?: string) => {
     ///TODO: Implement this
-    return this.connection.query('') as unknown as Product[];
+    const query: string = `SELECT * FROM products p JOIN ON categories c ON p.categoryId = c.id WHERE c.name = "${category}";`;
+    return this.connection.query(query) as unknown as Product[];
   };
 
   queryAllCategories = async () => {
@@ -43,13 +46,14 @@ export default class MySqlDB implements IDatabase {
 
   queryAllOrders = async () => {
     ///TODO: Implement this
-    return (await this.connection.query(""))[0] as Order[];
+    return (await this.connection.query("SELECT * FROM orders;"))[0] as Order[];
   };
 
   async queryOrdersByUser(id: string) {
     ///TODO: Implement this
+    const query: string = `SELECT * FROM orders WHERE userId = "${id}";`;
     return (
-      await this.connection.query('')
+      await this.connection.query(query)
     )[0] as Order[]; // Not a perfect analog for NoSQL, since SQL cannot return a list.
   };
 
