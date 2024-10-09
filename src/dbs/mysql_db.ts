@@ -85,7 +85,7 @@ export default class MySqlDB implements IDatabase {
 
     await this.connection.query(`INSERT INTO orders VALUES ("${order.id}", "${order.userId}", ${order.totalAmount})`)
     const promises = order.products.map(async (orderItem, i) => {
-      this.connection.query(`INSERT INTO order_items (id, orderId, productId, quantity) VALUES (UUID(), ${order.id}, "${orderItem.productId}", ${orderItem.quantity})`)
+      this.connection.query(`INSERT INTO order_items (id, orderId, productId, quantity) VALUES (UUID(), "${order.id}", "${orderItem.productId}", ${orderItem.quantity})`)
     })
     await Promise.all(promises)
 
