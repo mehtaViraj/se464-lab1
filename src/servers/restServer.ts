@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
 import { AllProductsRequest, Order, OrderRequest, ProductRequest, UserPatchRequest, UserRequest } from "../types";
+import logger from "../logger";
 
 export default class RestServer implements IServer {
 
@@ -18,7 +19,14 @@ export default class RestServer implements IServer {
   start() {
     const port = 3000;
     this.server.use(cors());
-    this.server.use(morgan("tiny"));
+
+    const morganLogs = morgan('tiny', {
+      stream: {
+        write: (msg: string) => logger.info(msg.trim()),
+      },
+    });
+
+    this.server.use(morganLogs);
     this.server.use(bodyParser.json());
 
     this.server.get("/", (req: express.Request, res: express.Response) => res.send("Hello, World!"));
@@ -122,7 +130,7 @@ export default class RestServer implements IServer {
     }); // Deletes an order by id
 
     this.server.listen(port, () => {
-      console.log(`REST server listening on port ${port}`);
+      logger.info(`REST server listening on port ${port}`);
     });
   }
 }
